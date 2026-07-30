@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Infrastructure as Code for the Hope for Communities NGO static website.
+  Creates an Amazon S3 bucket for static website hosting and an
+  Amazon CloudFront distribution for HTTPS delivery.
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: Globally unique S3 bucket name
+
+Resources:
+
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicRead
+            Effect: Allow
+            Principal: "*"
+            Action:
+              - s3:GetObject
+            Resource: !Sub "${WebsiteBucket.Arn}/*"
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+
+        Origins:
+          - Id: NGOOrigin
+            DomainName: !Select
+              - 2
+              - !Split
+                - /
+                - !GetAtt WebsiteBucket.WebsiteURL
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+
+        DefaultCacheBehavior:
+          TargetOriginId: NGOOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+
+          AllowedMethods:
+            - GET
+            - HEAD
+
+          CachedMethods:
+            - GET
+            - HEAD
+
+          ForwardedValues:
+            QueryString: false
+
+        PriceClass: PriceClass_100
+
+Outputs:
+
+  S3BucketName:
+    Description: Name of the S3 bucket
+    Value: !Ref WebsiteBucket
+
+  WebsiteURL:
+    Description: S3 Website Endpoint
+    Value: !GetAtt WebsiteBucket.WebsiteURL
+
+  CloudFrontURL:
+    Description: CloudFront Domain Name
+    Value: !GetAtt CloudFrontDistribution.DomainName
