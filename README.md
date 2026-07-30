@@ -100,17 +100,15 @@ This project minimizes cloud costs by:
 index.html
 style.css
 script.js
+logo.png
+hero.png
+community.png
+education.jpg
+healthcare.png
+gallery1.png
+gallery2.png
+gallery3.png
 README.md
-
-images/
-│── hero.png
-│── logo.png
-│── community.png
-│── education.jpg
-│── healthcare.png
-│── gallery1.png
-│── gallery2.png
-│── gallery3.png
 ```
 
 ---
